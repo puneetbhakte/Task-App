@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.taskapp.model.Category
 import com.example.taskapp.model.Task
 
-@Database(entities = [Task::class] , version = 4, exportSchema = true)
+@Database(entities = [Task::class,Category::class] , version = 7, exportSchema = true)
 abstract class Database:RoomDatabase() {
 
     abstract fun getTaskDao():TaskDao
+    abstract fun getCategory(): CategoryDao
 
     companion object{
         @Volatile

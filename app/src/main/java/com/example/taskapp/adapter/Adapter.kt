@@ -13,7 +13,10 @@ import com.example.taskapp.R
 import com.example.taskapp.databinding.SingleViewBinding
 import com.example.taskapp.model.Task
 
-class Adapter(private val context: Context,private val data:List<Task>):RecyclerView.Adapter<Adapter.TaskViewHolder>() {
+class Adapter(
+    private val context: Context,
+    private val data: List<Task>,
+):RecyclerView.Adapter<Adapter.TaskViewHolder>() {
 
     private var filteredData: List<Task> = data
 

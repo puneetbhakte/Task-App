@@ -1,29 +1,27 @@
 package com.example.taskapp
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.taskapp.adapter.Adapter
+import com.example.taskapp.adapter.CategoryAdapter
+import com.example.taskapp.adapter.CategoryItemClickListener
 import com.example.taskapp.database.Database
 import com.example.taskapp.databinding.ActivityMainBinding
 import com.example.taskapp.databinding.AddTaskBottomSheetBinding
+import com.example.taskapp.model.Category
 import com.example.taskapp.model.Task
 import com.example.taskapp.repository.Repository
 import com.example.taskapp.viewmodel.ViewModel
@@ -39,7 +37,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),CategoryItemClickListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var dialog: BottomSheetDialog
     private lateinit var bottomSheet: AddTaskBottomSheetBinding
@@ -48,6 +46,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dialogViewPriority: View
     private lateinit var adapter:Adapter
     private lateinit var task:Task
+    private lateinit var alertDialog:AlertDialog
+    private lateinit var categoryAdapter: CategoryAdapter
     var title:String? = null
     var description:String? = null
     var date:String? = null
@@ -56,8 +56,12 @@ class MainActivity : AppCompatActivity() {
     var priority:String? = null
     var category:String? = null
     var selectedPriorityCard: MaterialCardView? = null
-    private lateinit var imageTextPairs: List<Pair<MaterialCardView, TextView>>
+    private lateinit var customCategory: List<Category>
+    private  var selectedColor:Int? = null
+    private  var selectedIcon:Int = 0
+    private var name:String? = null
     private lateinit var imageTextPairsPriority: List<Pair<MaterialCardView, TextView>>
+    private lateinit var imageTextPairs: List<Pair<MaterialCardView, TextView>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,8 +81,9 @@ class MainActivity : AppCompatActivity() {
                 binding.emptyTaskTview.isVisible = true
                 binding.rvData.isVisible = false
                 binding.search.isVisible = false
-            }else{
                 adapter = Adapter(this,it)
+            }else{
+                adapter = Adapter(this, it)
                 binding.rvData.isVisible = true
                 binding.search.isVisible = true
                 binding.emptyTask.isVisible = false
@@ -87,22 +92,23 @@ class MainActivity : AppCompatActivity() {
                 binding.rvData.layoutManager = LinearLayoutManager(this)
                 binding.rvData.adapter = adapter
             }
+            binding.search.addTextChangedListener(object: TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+                    adapter.filter(s.toString())
+                }
+            }
+            )
         })
 
-        binding.search.addTextChangedListener(object: TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                adapter.filter(s.toString())
-            }
-        }
-            )
 
         val calendar = Calendar.getInstance()
         val hours = calendar.get(Calendar.HOUR_OF_DAY)
@@ -160,8 +166,8 @@ class MainActivity : AppCompatActivity() {
         bottomSheet.send.setOnClickListener {
             title = bottomSheet.titleTv.text.toString()
             description = bottomSheet.taskDescription.text.toString()
-            if (title.isNullOrBlank() || description.isNullOrBlank()){
-                Toast.makeText(this, "Enter Title and Description", Toast.LENGTH_SHORT).show()
+            if (title.isNullOrBlank() || description.isNullOrBlank()||minute.isNullOrBlank()||hour.isNullOrBlank()){
+                Toast.makeText(this, "Enter Title,Description and Date Time", Toast.LENGTH_SHORT).show()
             }else{
                 task = Task(0, title!!, description!!,date,category,priority,minute,hour)
                 viewModel.upsertTask(task)
@@ -224,23 +230,54 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun showCatogaryDialog(){
+    private fun showCatogaryDialog() {
         catogaryDialogView = LayoutInflater.from(this).inflate(R.layout.category, null)
         val dialogBuilder = AlertDialog.Builder(this)
             .setView(catogaryDialogView)
-        val alertDialog = dialogBuilder.create()
+        alertDialog = dialogBuilder.create()
         alertDialog.show()
+
         imageTextPairs = listOf(
-            Pair(catogaryDialogView.findViewById(R.id.grocery), catogaryDialogView.findViewById(R.id.grocery_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.work), catogaryDialogView.findViewById(R.id.work_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.sport), catogaryDialogView.findViewById(R.id.sport_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.design), catogaryDialogView.findViewById(R.id.design_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.university), catogaryDialogView.findViewById(R.id.university_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.social),catogaryDialogView.findViewById(R.id.social_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.music), catogaryDialogView.findViewById(R.id.music_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.health), catogaryDialogView.findViewById(R.id.health_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.movie), catogaryDialogView.findViewById(R.id.movie_tv)),
-            Pair(catogaryDialogView.findViewById(R.id.home), catogaryDialogView.findViewById(R.id.home_tv)),
+            Pair(
+                catogaryDialogView.findViewById(R.id.grocery),
+                catogaryDialogView.findViewById(R.id.grocery_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.work),
+                catogaryDialogView.findViewById(R.id.work_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.sport),
+                catogaryDialogView.findViewById(R.id.sport_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.design),
+                catogaryDialogView.findViewById(R.id.design_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.university),
+                catogaryDialogView.findViewById(R.id.university_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.social),
+                catogaryDialogView.findViewById(R.id.social_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.music),
+                catogaryDialogView.findViewById(R.id.music_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.health),
+                catogaryDialogView.findViewById(R.id.health_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.movie),
+                catogaryDialogView.findViewById(R.id.movie_tv)
+            ),
+            Pair(
+                catogaryDialogView.findViewById(R.id.home),
+                catogaryDialogView.findViewById(R.id.home_tv)
+            ),
 
             )
         imageTextPairs.forEach { pair ->
@@ -251,13 +288,36 @@ class MainActivity : AppCompatActivity() {
             }
 
 
-        }
+            catogaryDialogView.findViewById<MaterialCardView>(R.id.add).setOnClickListener {
+                val intent = Intent(this, CreateNewCategory::class.java)
+                startActivity(intent)
+            }
 
+            viewModel.getCategory().observe(this, Observer {
+                categoryAdapter = CategoryAdapter(this,it,this)
+                customCategory = it
+                catogaryDialogView.findViewById<RecyclerView>(R.id.catedory_rv).layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false)
+                catogaryDialogView.findViewById<RecyclerView>(R.id.catedory_rv).adapter = categoryAdapter
+
+            })
+
+
+
+
+        }
     }
 
     private fun convertMillisecondsToDate(milliseconds: Long): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val date = Date(milliseconds)
         return sdf.format(date)
+    }
+
+    override fun onCategoryClick(position: Int) {
+        category = customCategory[position].name
+        selectedIcon = customCategory[position].icon
+        selectedColor = customCategory[position].color
+        Toast.makeText(this, category, Toast.LENGTH_SHORT).show()
+        alertDialog.dismiss()
     }
 }

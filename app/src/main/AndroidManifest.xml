@@ -13,13 +13,11 @@
         android:theme="@style/Theme.TaskApp"
         tools:targetApi="31">
         <activity
+            android:name=".CreateNewCategory"
+            android:exported="false" />
+        <activity
             android:name=".DetailTask"
-            android:exported="true"
-
-            >
-
-
-        </activity>
+            android:exported="false"></activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">

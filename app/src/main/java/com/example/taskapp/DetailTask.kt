@@ -7,15 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.taskapp.adapter.CategoryAdapter
 import com.example.taskapp.database.Database
 import com.example.taskapp.databinding.ActivityDetailTaskBinding
 import com.example.taskapp.databinding.AddTaskBottomSheetBinding
@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.math.min
 
 class DetailTask : AppCompatActivity() {
     private lateinit var binding:ActivityDetailTaskBinding
@@ -74,6 +73,7 @@ class DetailTask : AppCompatActivity() {
 
             val drawableFlag = ContextCompat.getDrawable(this, R.drawable.flag)
             drawableFlag?.setBounds(0, 0, 60, 60)
+
             binding.priorityD.setCompoundDrawables(drawableFlag, null, null, null)
                 if (it.hour.isNullOrBlank() || it.minute.isNullOrBlank()){
                     binding.timeD.text = "DeadLine : Not Defined"
@@ -81,7 +81,7 @@ class DetailTask : AppCompatActivity() {
                     binding.timeD.text = "DeadLine: ${it.hour}:${it.minute}"
                 }
             binding.titleD.text = it.title
-            binding.descriptionD.text = it.description
+             binding.descriptionD.text = it.description
                 if ((it.category.isNullOrBlank())) {
                     binding.categoryD.text = "Not Defined"
                 }else{
@@ -282,9 +282,16 @@ class DetailTask : AppCompatActivity() {
                 Toast.makeText(this, pair.second?.text.toString(), Toast.LENGTH_SHORT).show()
                 category = pair.second.text.toString()
                 binding.categoryD.text = category
-                addDrawable(category)
+            //    addDrawable(category, selectedIcon)
                 alertDialog.dismiss()
             }
+
+            catogaryDialogView.findViewById<MaterialCardView>(R.id.add).setOnClickListener {
+                val intent = Intent(this, CreateNewCategory::class.java)
+                startActivity(intent)
+            }
+
+
 
 
         }
